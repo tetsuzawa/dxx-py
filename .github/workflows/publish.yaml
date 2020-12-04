@@ -3,10 +3,10 @@ name: Publish
 on:
   push:
     branches:
-      - master
+      - main
 
 jobs:
-  build:
+  publish:
 
     runs-on: ubuntu-latest
     steps:
@@ -22,14 +22,26 @@ jobs:
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Init .pypirc
       env:
-        PYPI_USERNAME: ${{ secrets.PYPI_USERNAME }}
-        PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+        PYPI_USERNAME_TOKEN: ${{ secrets.PYPI_USERNAME_TOKEN}}
+        PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+        PYPI_TEST_TOKEN: ${{ secrets.PYPI_TEST_TOKEN }}
       run: |
         echo -e '[pypi]' >> ~/.pypirc
-        echo -e "username = ${PYPI_USERNAME}" >> ~/.pypirc
-        echo -e "password = ${PYPI_PASSWORD}" >> ~/.pypirc
-    - name: Publish
+        echo -e "username = ${PYPI_USERNAME_TOKEN}" >> ~/.pypirc
+        echo -e "password = ${PYPI_TOKEN}" >> ~/.pypirc
+        echo -e '' >> ~/.pypirc
+        echo -e '[testpypi]' >> ~/.pypirc
+        echo -e "repository = https://test.pypi.org/legacy/" >> ~/.pypirc
+        echo -e "username = ${PYPI_USERNAME_TOKEN}" >> ~/.pypirc
+        echo -e "password = ${PYPI_TEST_TOKEN}" >> ~/.pypirc
+    - name: Preparation for publishment
       run: |
         python setup.py sdist
         python setup.py bdist_wheel
-        python setup.py publish
+    - name: Publish test
+      run: |
+        twine check dist/*
+        twine upload -r testpypi dist/*
+    - name: Publish
+      run: |
+        twine upload dist/*
