@@ -1,8 +1,22 @@
 # -*- coding: utf-8 -*-
 
 import os
+from enum import IntEnum, auto
 
 import numpy as np
+
+
+class Dtype(IntEnum):
+    DSA = auto()
+    DFA = auto()
+    DDA = auto()
+    DSB = auto()
+    DFB = auto()
+    DDB = auto()
+
+    def __str__(self):
+        return self.name
+
 
 exts = [".DSA", ".DFA", ".DDA", ".DSB", ".DFB", ".DDB"]
 dtypes = [np.int16, np.float32, np.float64, np.int16, np.float32, np.float64]
@@ -11,22 +25,24 @@ _format_specifiers = ["%d", "%e", "%e"]
 
 
 class BadDataStyleError(Exception):
-    """ファイル形式が適切でないことを知らせる例外クラス"""
+    """Exception class for the invalid file extension error"""
     pass
 
 
-def _style(name: str):
-    """ファイルの拡張子を確認する関数。拡張子が不適切であれば例外を発生させる。"""
+def _style(name: str) -> int:
+    """Check the extension of the filename."""
     name_ext = os.path.splitext(name)[1]
 
     if not name_ext in exts:
-        raise BadDataStyleError(f"ファイルの拡張子が不適切です。 want: {exts}, got: {name_ext}")
+        raise BadDataStyleError(f"Invalid file extension. want: {exts}, got: {name_ext}")
 
     return exts.index(name_ext)
 
 
 def len_file(filename: str) -> int:
-    """データの長さを確認する関数
+    """Check the length of data
+
+    If the extension of filename is not .DXX, it throws exception.
 
     example:
         import dxx
@@ -38,7 +54,9 @@ def len_file(filename: str) -> int:
 
 
 def read(filename: str) -> np.ndarray:
-    """.DXXファイルを読み込む関数
+    """Read .DXX file
+
+    If the extension of filename is not .DXX, it throws exception.
 
     example:
         import dxx
@@ -61,7 +79,9 @@ def read(filename: str) -> np.ndarray:
 
 
 def write(filename: str, data: np.ndarray):
-    """.DXXファイルを書き込む関数
+    """Write .DXX file
+
+    If the extension of filename is not .DXX, it throws exception.
 
     example:
         import dxx
@@ -82,12 +102,12 @@ def write(filename: str, data: np.ndarray):
     else:
         BadDataStyleError(f"want: np.int16 or np.float32 or np.float64, got: ", data_type)
 
-    # DXAファイル（アスキー文字列）
+    # .DXA file（ascii string）
     if index < 3:
-        # 改行区切りで保存
+        # save data separated by line breaks
         data.tofile(filename, sep="\n", format=_format_specifiers[index])
 
-    # DXBファイル（バイナリ）
+    # .DXB file（binary）
     else:
         data.tofile(filename)
 
