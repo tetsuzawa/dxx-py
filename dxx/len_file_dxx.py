@@ -15,8 +15,8 @@ def main():
     args = parser.parse_args()
     filename = args.filename
 
-    input_ext = os.path.splitext(filename)[-1]
-    if input_ext in dxx.exts:
+    input_ext = os.path.splitext(filename)[-1].strip(".")
+    if input_ext in dxx.Dtype.list_names():
         data = dxx.read(filename)
 
     else:

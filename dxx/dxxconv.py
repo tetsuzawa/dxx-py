@@ -13,8 +13,8 @@ import dxx
 
 def main():
     desc = """
-    .DXXや.wavを相互変換する。
-    次のファイル形式のみ入出力可能。(.DSA, .DFA, .DDA, .DSB, .DFB, .DDB, .wav)
+    convert .DXX or .wav file.
+    dxxconv can handle {.DSA, .DFA, .DDA, .DSB, .DFB, .DDB, .wav}.
     """
     parser = argparse.ArgumentParser(description=desc)
     parser.add_argument("input", help="変換元のファイル名")
@@ -24,12 +24,13 @@ def main():
     output = args.output
 
     # read input
-    input_ext = os.path.splitext(input)[-1]
-    if input_ext in dxx.exts:
+    input_ext = os.path.splitext(input)[-1].strip(".")
+    if input_ext in dxx.Dtype.list_names():
         data = dxx.read(input)
-        input_type = dxx.dtypes[dxx.exts.index(input_ext)]
+        # input_type = dxx.dtypes[dxx.exts.index(input_ext)]
+        input_type = dxx.Dtype.from_filename(input)
 
-    elif input_ext == ".wav":
+    elif input_ext == "wav":
         data = read_wav(input)
         input_type = np.int16
 
@@ -40,10 +41,10 @@ def main():
 
     # write output
     output_ext = os.path.splitext(output)[-1]
-    if output_ext in dxx.exts:
+    if output_ext in dxx.Dtype.list_names():
         dxx.write(output, data)
 
-    elif output_ext == ".wav":
+    elif output_ext == "wav":
         if input_type == np.float32 or input_type == np.float64:
             data = float_to_int16(data)
         write_wav(output, data)
@@ -52,8 +53,6 @@ def main():
         print("Error: output file extension is invalid. want: .wav or .DXX, got:", input_ext, file=sys.stderr)
         parser.print_help(file=sys.stderr)
         sys.exit(1)
-
-    print("Successfully completed!")
 
 
 def read_wav(name: str) -> np.ndarray:
