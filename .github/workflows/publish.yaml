@@ -34,10 +34,14 @@ jobs:
         echo -e "repository = https://test.pypi.org/legacy/" >> ~/.pypirc
         echo -e "username = ${PYPI_USERNAME_TOKEN}" >> ~/.pypirc
         echo -e "password = ${PYPI_TEST_TOKEN}" >> ~/.pypirc
-    - name: Publish
+    - name: Preparation for publishment
       run: |
         python setup.py sdist
         python setup.py bdist_wheel
+    - name: Publish test
+      run: |
         twine check dist/*
         twine upload -r testpypi dist/*
+    - name: Publish
+      run: |
         twine upload dist/*
