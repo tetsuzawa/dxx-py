@@ -1,74 +1,118 @@
 # -*- coding: utf-8 -*-
 
-# ##################################################
-# 研究室で使用している音声ファイル (.DXX 形式)を扱うライブラリ
-#
-# 作成者:瀧澤哲
-# 作成年:2020
-# ##################################################
-
 import os
+from typing import List
+from enum import IntEnum, auto
 
 import numpy as np
 
-exts = [".DSA", ".DFA", ".DDA", ".DSB", ".DFB", ".DDB"]
-dtypes = [np.int16, np.float32, np.float64, np.int16, np.float32, np.float64]
-dtype_byte_width = [2, 4, 8, 2, 4, 8]
-_format_specifiers = ["%d", "%e", "%e"]
+
+class Dtype(IntEnum):
+    DSA = auto()
+    DFA = auto()
+    DDA = auto()
+    DSB = auto()
+    DFB = auto()
+    DDB = auto()
+
+    @staticmethod
+    def from_filename(filename: str) -> "Dtype":
+        ext = os.path.splitext(filename)[1].strip(".")
+
+        for dtype in Dtype:
+            if dtype.name == ext:
+                return dtype
+        raise BadDataStyleError(f"Invalid file extension. want: {Dtype.list_names}, got: {ext}")
+
+    @staticmethod
+    def list_names() -> List[str]:
+        return [e.name for e in Dtype]
+
+    @property
+    def byte_width(self) -> int:
+        if self in [Dtype.DSA, Dtype.DSB]:
+            return 2
+        if self in [Dtype.DFA, Dtype.DFB]:
+            return 4
+        if self in [Dtype.DDA, Dtype.DDB]:
+            return 8
+
+    @property
+    def _format_specifiers(self) -> str:
+        if self in [Dtype.DSA, Dtype.DSB]:
+            return "%d"
+        if self in [Dtype.DFA, Dtype.DFB]:
+            return "%e"
+        if self in [Dtype.DDA, Dtype.DDB]:
+            return "%le"
+
+    @property
+    def numpy_dtype(self) -> np.dtype:
+        if self in [Dtype.DSA, Dtype.DSB]:
+            return np.int16
+        if self in [Dtype.DFA, Dtype.DFB]:
+            return np.float32
+        if self in [Dtype.DDA, Dtype.DDB]:
+            return np.float64
+
+    @property
+    def is_DXA(self) -> bool:
+        """Check if self is DXA (ascii string)"""
+        return self in [Dtype.DSA, Dtype.DFA, Dtype.DDA]
+
+    @property
+    def is_DXB(self) -> bool:
+        """Check if self is DXB (binary)"""
+        return self in [Dtype.DSB, Dtype.DFB, Dtype.DDB]
+
+    def __str__(self):
+        return self.name
 
 
 class BadDataStyleError(Exception):
-    """ファイル形式が適切でないことを知らせる例外クラス"""
+    """Exception class for the invalid file extension error"""
     pass
 
 
-def _style(name: str):
-    """ファイルの拡張子を確認する関数。拡張子が不適切であれば例外を発生させる。"""
-    name_ext = os.path.splitext(name)[1]
-
-    if not name_ext in exts:
-        raise BadDataStyleError(f"ファイルの拡張子が不適切です。 want: {exts}, got: {name_ext}")
-
-    return exts.index(name_ext)
-
-
 def len_file(filename: str) -> int:
-    """データの長さを確認する関数
+    """Check the length of data
+
+    If the extension of filename is not .DXX, it throws exception.
 
     example:
         import dxx
         num_sample = dxx.len_file("example.DSB")
     """
-    index = _style(filename)
-    byte_width = dtype_byte_width[index]
-    return int(os.path.getsize(filename) / byte_width)
+    dtype = Dtype.from_filename(filename)
+    return int(os.path.getsize(filename) / dtype.byte_width)
 
 
 def read(filename: str) -> np.ndarray:
-    """.DXXファイルを読み込む関数
+    """Read .DXX file
+
+    If the extension of filename is not .DXX, it throws exception.
 
     example:
         import dxx
         data = dxx.read("example.DSB")
     """
 
-    index = _style(filename)
+    dtype = Dtype.from_filename(filename)
 
-    # DXAファイル（アスキー文字列）
-    if index < 3:
+    if dtype.is_DXA:
         with open(filename, "r") as f:
-            data = np.fromfile(f, dtypes[index], -1)
-        return data
+            data = np.fromfile(f, dtype.numpy_dtype, -1)
 
-    # DXBファイル（バイナリ）
     else:
         with open(filename, "rb") as f:
-            data = np.fromfile(f, dtypes[index], -1)
-        return data
+            data = np.fromfile(f, dtype.numpy_dtype, -1)
+    return data
 
 
 def write(filename: str, data: np.ndarray):
-    """.DXXファイルを書き込む関数
+    """Write .DXX file
+
+    If the extension of filename is not .DXX, it throws exception.
 
     example:
         import dxx
@@ -76,10 +120,10 @@ def write(filename: str, data: np.ndarray):
         dxx.write("example.DDB", data)
     """
 
-    index = _style(filename)
+    dtype = Dtype.from_filename(filename)
 
     data_type = data.dtype
-    output_type = dtypes[index]
+    output_type = dtype.numpy_dtype
     if (data_type == np.float32 or data_type == np.float64) and output_type == np.int16:
         data = _float_to_int16(data)
     elif data_type == np.int16 and output_type == np.float32:
@@ -87,14 +131,12 @@ def write(filename: str, data: np.ndarray):
     elif data_type == np.int16 and output_type == np.float64:
         data = _int16_to_float64(data)
     else:
-        BadDataStyleError(f"want: np.int16 or np.float32 or np.float64, got: ", data_type)
+        BadDataStyleError(f"Invalid data type. want: np.int16 or np.float32 or np.float64, got: ", data_type)
 
-    # DXAファイル（アスキー文字列）
-    if index < 3:
-        # 改行区切りで保存
-        data.tofile(filename, sep="\n", format=_format_specifiers[index])
+    if dtype.is_DXA:
+        # save data separated by line breaks
+        data.tofile(filename, sep="\n", format=dtype._format_specifiers)
 
-    # DXBファイル（バイナリ）
     else:
         data.tofile(filename)
 
