@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  build:
+  publish:
 
     runs-on: ubuntu-latest
     steps:
@@ -28,10 +28,13 @@ jobs:
         echo -e '[pypi]' >> ~/.pypirc
         echo -e "username = ${PYPI_USERNAME}" >> ~/.pypirc
         echo -e "password = ${PYPI_PASSWORD}" >> ~/.pypirc
+        echo -e '[pypitest]' >> ~/.pypirc
+        echo -e "username = ${PYPI_USERNAME}" >> ~/.pypirc
+        echo -e "password = ${PYPI_PASSWORD}" >> ~/.pypirc
     - name: Publish
       run: |
         python setup.py sdist
         python setup.py bdist_wheel
         twine check dist/*
-        twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+        twine upload -r pypitest dist/*
         twine upload dist/*
