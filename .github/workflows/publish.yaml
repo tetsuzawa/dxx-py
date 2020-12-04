@@ -22,8 +22,8 @@ jobs:
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Init .pypirc
       env:
-        PYPI_USERNAME: ${{ secrets.PYPI_USERNAME }}
-        PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+        PYPI_USERNAME: ${{ secrets.PYPI_TOKEN }}
+        PYPI_PASSWORD: ${{ secrets.PYPI_TEST_TOKEN }}
       run: |
         echo -e '[pypi]' >> ~/.pypirc
         echo -e "username = __token__" >> ~/.pypirc
