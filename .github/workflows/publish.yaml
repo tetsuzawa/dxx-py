@@ -26,16 +26,17 @@ jobs:
         PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
       run: |
         echo -e '[pypi]' >> ~/.pypirc
-        echo -e "username = ${PYPI_USERNAME}" >> ~/.pypirc
-        echo -e "password = ${PYPI_PASSWORD}" >> ~/.pypirc
+        echo -e "username = __token__" >> ~/.pypirc
+        echo -e "password = ${PYPI_TOKEN}" >> ~/.pypirc
         echo -e '' >> ~/.pypirc
-        echo -e '[pypitest]' >> ~/.pypirc
-        echo -e "username = ${PYPI_USERNAME}" >> ~/.pypirc
-        echo -e "password = ${PYPI_PASSWORD}" >> ~/.pypirc
+        echo -e '[testpypi]' >> ~/.pypirc
+        echo -e "repository = https://test.pypi.org/legacy/" >> ~/.pypirc
+        echo -e "username = __token__" >> ~/.pypirc
+        echo -e "password = ${PYPI_TEST_TOKEN}" >> ~/.pypirc
     - name: Publish
       run: |
         python setup.py sdist
         python setup.py bdist_wheel
         twine check dist/*
-        twine upload -r pypitest dist/*
+        twine upload -r testpypi dist/*
         twine upload dist/*
