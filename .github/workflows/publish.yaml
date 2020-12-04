@@ -22,17 +22,18 @@ jobs:
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Init .pypirc
       env:
-        PYPI_USERNAME: ${{ secrets.PYPI_TOKEN }}
-        PYPI_PASSWORD: ${{ secrets.PYPI_TEST_TOKEN }}
+        PYPI_USERNAME_TOKEN: ${{ secrets.PYPI_USERNAME_TOKEN}}
+        PYPI_TOKEN: ${{ secrets.PYPI_TEST_TOKEN }}
+        PYPI_TEST_TOKEN: ${{ secrets.PYPI_TEST_TOKEN }}
       run: |
         echo -e '[pypi]' >> ~/.pypirc
-        echo -e "username = ${PYPI_USERNAME}" >> ~/.pypirc
-        echo -e "password = ${PYPI_PASSWORD}" >> ~/.pypirc
+        echo -e "username = ${PYPI_USERNAME_TOKEN}" >> ~/.pypirc
+        echo -e "password = ${PYPI_TOKEN}" >> ~/.pypirc
         echo -e '' >> ~/.pypirc
         echo -e '[testpypi]' >> ~/.pypirc
         echo -e "repository = https://test.pypi.org/legacy/" >> ~/.pypirc
         echo -e "username = ${PYPI_USERNAME}" >> ~/.pypirc
-        echo -e "password = ${PYPI_PASSWORD}" >> ~/.pypirc
+        echo -e "password = ${PYPI_TEST_TOKEN}" >> ~/.pypirc
     - name: Publish
       run: |
         python setup.py sdist
