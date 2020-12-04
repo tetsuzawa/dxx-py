@@ -2,6 +2,7 @@
 
 
 [![PyPI version](https://badge.fury.io/py/dxx.svg)](https://badge.fury.io/py/dxx)
+![Build status](https://github.com/tetsuzawa/dxx-py/workflows/Build/badge.svg)
 <a href="LICENSE"><img src="http://img.shields.io/badge/license-MIT-blue.svg?style=flat" alt="MIT License"></a>
 
 
