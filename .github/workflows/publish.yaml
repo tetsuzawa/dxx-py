@@ -32,7 +32,7 @@ jobs:
         echo -e '' >> ~/.pypirc
         echo -e '[testpypi]' >> ~/.pypirc
         echo -e "repository = https://test.pypi.org/legacy/" >> ~/.pypirc
-        echo -e "username = ${PYPI_USERNAME}" >> ~/.pypirc
+        echo -e "username = ${PYPI_USERNAME_TOKEN}" >> ~/.pypirc
         echo -e "password = ${PYPI_TEST_TOKEN}" >> ~/.pypirc
     - name: Publish
       run: |
