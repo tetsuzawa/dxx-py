@@ -17,8 +17,8 @@ def main():
     dxxconv can handle {.DSA, .DFA, .DDA, .DSB, .DFB, .DDB, .wav}.
     """
     parser = argparse.ArgumentParser(description=desc)
-    parser.add_argument("input", help="変換元のファイル名")
-    parser.add_argument("output", help="変換後のファイル名")
+    parser.add_argument("input", help="input file name")
+    parser.add_argument("output", help="output file name")
     args = parser.parse_args()
     input = args.input
     output = args.output
