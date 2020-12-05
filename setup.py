@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="dxx",
-    version="0.1.2",
+    version="0.1.3",
     description="dxx is a library for io and converting audio files with a .DXX extension.",
     packages=["dxx"],
     install_requires=open('requirements.txt').read().splitlines(),
